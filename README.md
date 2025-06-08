@@ -12,8 +12,20 @@ A Go-based tool designed to scan all text files in a directory, extract copyrigh
 
 ## Installation
 
+You can install Nemesis in one of the following ways:
+
+### Option 1: Clone the repository
+
 ```bash
-go get github.com/your-username/copyright-scanner
+git clone https://github.com/li-clement/Nemesis.git
+cd Nemesis
+go build ./cmd/scanner
+```
+
+### Option 2: Using go get (requires the package to be published)
+
+```bash
+go get github.com/li-clement/Nemesis
 ```
 
 ## Usage
