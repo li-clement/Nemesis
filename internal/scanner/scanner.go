@@ -16,26 +16,26 @@ import (
 	"unicode"
 )
 
-// Scanner 结构体用于处理版权信息扫描
+// Scanner is a struct for handling copyright information scanning
 type Scanner struct {
-	// 移除 codeExtensions，因为我们现在扫描所有文本文件
+	// Removed codeExtensions as we now scan all text files
 }
 
-// NewScanner 创建一个新的扫描器实例
+// NewScanner creates a new scanner instance
 func NewScanner() *Scanner {
 	return &Scanner{}
 }
 
-// isTextFile 检查文件是否是文本文件
+// isTextFile checks if a file is a text file
 func (s *Scanner) isTextFile(path string) bool {
-	// 打开文件
+	// Open the file
 	file, err := os.Open(path)
 	if err != nil {
 		return false
 	}
 	defer file.Close()
 
-	// 读取文件的前512字节
+	// Read the first 512 bytes of the file
 	buf := make([]byte, 512)
 	n, err := file.Read(buf)
 	if err != nil && err != io.EOF {
@@ -43,12 +43,12 @@ func (s *Scanner) isTextFile(path string) bool {
 	}
 	buf = buf[:n]
 
-	// 检查是否包含空字节（二进制文件的特征）
+	// Check if it contains null bytes (characteristic of binary files)
 	if bytes.Contains(buf, []byte{0}) {
 		return false
 	}
 
-	// 检查文件内容是否是可打印的ASCII字符或常见的Unicode字符
+	// Check if the file content consists of printable ASCII characters or common Unicode characters
 	for _, b := range buf {
 		if b < 32 && !isAllowedControlChar(b) {
 			return false
@@ -58,29 +58,29 @@ func (s *Scanner) isTextFile(path string) bool {
 	return true
 }
 
-// isAllowedControlChar 检查是否是允许的控制字符
+// isAllowedControlChar checks if a character is allowed as a control character
 func isAllowedControlChar(b byte) bool {
-	// 允许的控制字符：换行、回车、制表符
+	// Allowed control characters: newline, carriage return, tab
 	return b == '\n' || b == '\r' || b == '\t'
 }
 
-// cleanLine 清理行中的注释符号和其他标记
+// cleanLine cleans up comments and other markings in a line
 func cleanLine(line string) string {
-	// 移除开头的注释符号和其他标记
+	// Remove leading comment markings and other markings
 	prefixes := []string{"//", "/*", "*/", "#", "*", "+", "-", "<!--", "-->"}
 	trimmed := line
 
-	// 重复清理，直到没有可清理的前缀
+	// Repeat cleaning until no more prefixes can be removed
 	for {
 		original := trimmed
 		trimmed = strings.TrimSpace(trimmed)
 
-		// 移除所有注释符号，不管它们在哪里
+		// Remove all comment markings, no matter where they are
 		for _, prefix := range prefixes {
 			trimmed = strings.ReplaceAll(trimmed, prefix, " ")
 		}
 
-		// 规范化空白字符
+		// Normalize whitespace characters
 		trimmed = strings.Join(strings.Fields(trimmed), " ")
 
 		if original == trimmed {
@@ -91,12 +91,12 @@ func cleanLine(line string) string {
 	return trimmed
 }
 
-// normalizeForComparison 标准化字符串以进行比较
+// normalizeForComparison normalizes a string for comparison
 func normalizeForComparison(s string) string {
-	// 转换为小写
+	// Convert to lowercase
 	s = strings.ToLower(s)
 
-	// 移除所有标点符号（包括句点）和特殊字符
+	// Remove all punctuation (including periods) and special characters
 	s = strings.Map(func(r rune) rune {
 		if unicode.IsPunct(r) || unicode.IsSymbol(r) {
 			return ' '
@@ -104,15 +104,15 @@ func normalizeForComparison(s string) string {
 		return unicode.ToLower(r)
 	}, s)
 
-	// 规范化空白字符
+	// Normalize whitespace characters
 	fields := strings.Fields(s)
 
-	// 移除常见的前缀词和年份
+	// Remove common prefixes and years
 	var cleanFields []string
 	for i := 0; i < len(fields); i++ {
 		field := fields[i]
 
-		// 跳过常见的前缀词
+		// Skip common prefixes
 		if field == "copyright" || field == "c" || field == "by" ||
 			field == "corp" || field == "corporation" || field == "inc" ||
 			field == "affiliates" || field == "all" || field == "rights" ||
@@ -121,20 +121,20 @@ func normalizeForComparison(s string) string {
 			continue
 		}
 
-		// 跳过年份（4位数字）
+		// Skip years (4-digit numbers)
 		if len(field) == 4 {
 			if _, err := strconv.Atoi(field); err == nil {
 				continue
 			}
 		}
 
-		// 跳过年份范围（例如：2022-2025）
+		// Skip year ranges (e.g., 2022-2025)
 		if i < len(fields)-2 && len(field) == 4 {
 			if year1, err1 := strconv.Atoi(field); err1 == nil {
 				if fields[i+1] == "-" || fields[i+1] == "to" {
 					if year2, err2 := strconv.Atoi(fields[i+2]); err2 == nil {
-						if year2 > year1 && year2-year1 <= 100 { // 确保是合理的年份范围
-							i += 2 // 跳过分隔符和第二个年份
+						if year2 > year1 && year2-year1 <= 100 { // Ensure it's a reasonable year range
+							i += 2 // Skip over the separator and the second year
 							continue
 						}
 					}
@@ -148,7 +148,7 @@ func normalizeForComparison(s string) string {
 	return strings.Join(cleanFields, " ")
 }
 
-// extractCopyright 从文件中提取copyright信息
+// extractCopyright extracts copyright information from a file
 func (s *Scanner) extractCopyright(filePath string) (string, error) {
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -156,12 +156,12 @@ func (s *Scanner) extractCopyright(filePath string) (string, error) {
 	}
 	defer file.Close()
 
-	// 设置更大的缓冲区
+	// Set a larger buffer
 	reader := bufio.NewReaderSize(file, 1024*1024) // 1MB buffer
 	var copyright strings.Builder
 	seenCopyrights := make(map[string]bool)
 
-	// 用于存储多行版权信息
+	// For storing multi-line copyright information
 	var currentCopyright strings.Builder
 	var isCollectingCopyright bool
 
@@ -171,13 +171,13 @@ func (s *Scanner) extractCopyright(filePath string) (string, error) {
 			return "", err
 		}
 
-		// 去除前后空白
+		// Remove leading and trailing whitespace
 		trimmedLine := strings.TrimSpace(line)
 
-		// 处理空行
+		// Handle empty lines
 		if trimmedLine == "" {
 			if isCollectingCopyright {
-				// 处理已收集的版权信息
+				// Handle collected copyright information
 				if currentCopyright.Len() > 0 {
 					cleanedCopyright := cleanLine(currentCopyright.String())
 					normalizedCopyright := normalizeForComparison(cleanedCopyright)
@@ -195,7 +195,7 @@ func (s *Scanner) extractCopyright(filePath string) (string, error) {
 			continue
 		}
 
-		// 跳过可能的代码行和测试相关内容
+		// Skip possible code lines and test-related content
 		lowercaseLine := strings.ToLower(trimmedLine)
 		if strings.Contains(lowercaseLine, "func ") ||
 			strings.Contains(lowercaseLine, "type ") ||
@@ -231,7 +231,7 @@ func (s *Scanner) extractCopyright(filePath string) (string, error) {
 			strings.Contains(lowercaseLine, "retain") ||
 			strings.Contains(lowercaseLine, "reproduce") {
 			if isCollectingCopyright {
-				// 处理已收集的版权信息
+				// Handle collected copyright information
 				if currentCopyright.Len() > 0 {
 					cleanedCopyright := cleanLine(currentCopyright.String())
 					normalizedCopyright := normalizeForComparison(cleanedCopyright)
@@ -249,7 +249,7 @@ func (s *Scanner) extractCopyright(filePath string) (string, error) {
 			continue
 		}
 
-		// 检查是否包含copyright相关文字，并确保这是一个真实的版权声明
+		// Check if it contains copyright-related text and ensure it's a real copyright statement
 		if (strings.Contains(lowercaseLine, "copyright") ||
 			strings.Contains(lowercaseLine, "©") ||
 			strings.Contains(lowercaseLine, "(c)") ||
@@ -267,16 +267,16 @@ func (s *Scanner) extractCopyright(filePath string) (string, error) {
 			!strings.Contains(lowercaseLine, "retain") &&
 			!strings.Contains(lowercaseLine, "reproduce") {
 
-			// 开始收集版权信息
+			// Start collecting copyright information
 			isCollectingCopyright = true
 			currentCopyright.WriteString(trimmedLine)
 		} else if isCollectingCopyright {
-			// 继续收集版权信息
+			// Continue collecting copyright information
 			currentCopyright.WriteString(" " + trimmedLine)
 		}
 
 		if err == io.EOF {
-			// 处理最后一个版权信息
+			// Handle last copyright information
 			if isCollectingCopyright && currentCopyright.Len() > 0 {
 				cleanedCopyright := cleanLine(currentCopyright.String())
 				normalizedCopyright := normalizeForComparison(cleanedCopyright)
@@ -292,42 +292,40 @@ func (s *Scanner) extractCopyright(filePath string) (string, error) {
 	return copyright.String(), nil
 }
 
-// ScanSubDirectories 扫描指定目录下的所有子目录
+// ScanSubDirectories scans all subdirectories under a specified directory
 func (s *Scanner) ScanSubDirectories(rootDir string, outputPattern string) error {
-	// 获取所有子目录
+	// Get all subdirectories
 	entries, err := os.ReadDir(rootDir)
 	if err != nil {
-		return fmt.Errorf("读取目录失败: %v", err)
+		return fmt.Errorf("failed to read directory: %v", err)
 	}
 
 	for _, entry := range entries {
 		if entry.IsDir() {
 			subDir := filepath.Join(rootDir, entry.Name())
 
-			// 生成输出文件名
+			// Generate output file name
 			outputFile := strings.ReplaceAll(outputPattern, "{name}", entry.Name())
 			if !strings.Contains(outputPattern, "{name}") {
-				// 如果模式中没有 {name}，在文件名和扩展名之间插入目录名
+				// If pattern does not contain {name}, insert directory name between file name and extension
 				ext := filepath.Ext(outputFile)
 				base := strings.TrimSuffix(outputFile, ext)
-				if strings.HasSuffix(base, "_") {
-					base = strings.TrimSuffix(base, "_")
-				}
+				base = strings.TrimSuffix(base, "_")
 				outputFile = base + "_" + entry.Name() + ext
 			}
 
-			// 扫描子目录
+			// Scan subdirectory
 			copyrightText, err := s.ScanDirectory(subDir)
 			if err != nil {
-				return fmt.Errorf("扫描目录 %s 失败: %v", subDir, err)
+				return fmt.Errorf("failed to scan directory %s: %v", subDir, err)
 			}
 
-			// 从 template 文件夹读取 prefix.txt 的内容
+			// Read prefix.txt content from template folder
 			prefixContent := ""
 			if prefixBytes, err := os.ReadFile("template/prefix.txt"); err == nil {
 				prefixContent = string(prefixBytes)
 
-				// 在 prefix.txt 中查找并替换 Software: 行
+				// Find and replace Software: line in prefix.txt
 				lines := strings.Split(prefixContent, "\n")
 				for i, line := range lines {
 					if strings.TrimSpace(line) == "Software:" {
@@ -337,33 +335,33 @@ func (s *Scanner) ScanSubDirectories(rootDir string, outputPattern string) error
 				}
 				prefixContent = strings.Join(lines, "\n")
 
-				// 确保前缀内容以换行符结束
+				// Ensure prefix content ends with a newline
 				if !strings.HasSuffix(prefixContent, "\n") {
 					prefixContent += "\n"
 				}
 
-				// 组合前缀和版权信息
+				// Combine prefix and copyright information
 				copyrightText = prefixContent + copyrightText
 			}
 
-			// 写入结果
+			// Write result
 			if err := os.WriteFile(outputFile, []byte(copyrightText), 0644); err != nil {
-				return fmt.Errorf("写入文件 %s 失败: %v", outputFile, err)
+				return fmt.Errorf("failed to write file %s: %v", outputFile, err)
 			}
 
-			fmt.Printf("完成扫描 %s，结果已保存到: %s\n", subDir, outputFile)
+			fmt.Printf("Completed scanning %s, result saved to: %s\n", subDir, outputFile)
 		}
 	}
 
 	return nil
 }
 
-// ScanDirectory 扫描单个目录
+// ScanDirectory scans a single directory
 func (s *Scanner) ScanDirectory(dir string) (string, error) {
 	var result strings.Builder
 	seenCopyrights := make(map[string]bool)
 
-	// 首先查找并读取 LICENSE 文件
+	// First find and read LICENSE file
 	var licenseContent string
 	licenseFiles := []string{"LICENSE", "LICENSE.txt", "LICENSE.md", "license", "license.txt", "license.md"}
 	for _, licenseFile := range licenseFiles {
@@ -379,7 +377,7 @@ func (s *Scanner) ScanDirectory(dir string) (string, error) {
 			return err
 		}
 
-		// 跳过目录和非文本文件
+		// Skip directories and non-text files
 		if info.IsDir() {
 			return nil
 		}
@@ -387,16 +385,16 @@ func (s *Scanner) ScanDirectory(dir string) (string, error) {
 			return nil
 		}
 
-		// 提取copyright信息
+		// Extract copyright information
 		copyright, err := s.extractCopyright(path)
 		if err != nil {
-			fmt.Printf("处理文件 %s 时出错: %v\n", path, err)
+			fmt.Printf("Error processing file %s: %v\n", path, err)
 			return nil
 		}
 
-		// 如果找到copyright信息，添加到结果中（避免重复）
+		// If copyright information is found, add to result (avoid duplicates)
 		if copyright != "" {
-			// 分割多行copyright信息
+			// Split multi-line copyright information
 			copyrights := strings.Split(copyright, "\n")
 			for _, c := range copyrights {
 				if c != "" && !seenCopyrights[c] {
@@ -410,17 +408,17 @@ func (s *Scanner) ScanDirectory(dir string) (string, error) {
 	})
 
 	if err != nil {
-		return "", fmt.Errorf("扫描目录时出错: %v", err)
+		return "", fmt.Errorf("Error scanning directory: %v", err)
 	}
 
-	// 如果找到了 LICENSE 文件，添加到结果末尾
+	// If LICENSE file is found, add to result at the end
 	if licenseContent != "" {
-		// 添加一个分隔行
+		// Add a separator line
 		result.WriteString("\nLicense Text:\n")
 		result.WriteString("----------------------------------------\n\n")
 		result.WriteString(licenseContent)
 
-		// 确保文件以换行符结束
+		// Ensure file ends with a newline
 		if !strings.HasSuffix(licenseContent, "\n") {
 			result.WriteString("\n")
 		}

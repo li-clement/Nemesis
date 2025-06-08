@@ -1,4 +1,3 @@
-# 二进制文件
 *.exe
 *.exe~
 *.dll
@@ -7,35 +6,35 @@
 addcopyright
 copyright
 
-# 测试文件
+
 test_files/
 *_test.go
 *.test
 
-# 输出文件
+
 *.out
 output.txt
 
-# IDE 相关
+
 .idea/
 .vscode/
 *.swp
 *.swo
 
-# Go 特定文件
+
 *.o
 *.a
 _obj
 _test
 _testmain.go
 
-# 依赖目录
+
 /vendor/
 
-# 调试文件
+
 debug
 *.log
 
-# 操作系统文件
+
 .DS_Store
 Thumbs.db 

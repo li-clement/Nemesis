@@ -8,25 +8,27 @@ import (
 	"fmt"
 	"os"
 
-	"nemesis/internal/scanner"
+	"github.com/li-clement/Nemesis/internal/scanner"
 )
 
 func main() {
+	// Check command line arguments
 	if len(os.Args) != 3 {
-		fmt.Println("使用方法: scanner <扫描目录> <输出文件模式>")
-		fmt.Println("例如: scanner test_files 'copyright_{name}.txt'")
-		fmt.Println("注意: {name} 将被替换为子目录名")
+		fmt.Println("Usage: scanner <scan directory> <output file pattern>")
+		fmt.Println("Example: scanner test_files 'copyright_{name}.txt'")
+		fmt.Println("Note: {name} will be replaced with subdirectory name")
 		os.Exit(1)
 	}
 
-	scanDir := os.Args[1]
-	outputPattern := os.Args[2]
+	// Create scanner and scan directories
+	s := scanner.NewScanner()
+	err := s.ScanSubDirectories(os.Args[1], os.Args[2])
 
-	scanner := scanner.NewScanner()
-	if err := scanner.ScanSubDirectories(scanDir, outputPattern); err != nil {
-		fmt.Printf("扫描出错: %v\n", err)
+	// Handle errors
+	if err != nil {
+		fmt.Printf("Scan error: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("所有目录扫描完成！")
+	fmt.Println("All directories scanned successfully!")
 }
