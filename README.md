@@ -49,7 +49,6 @@ copyright-scanner . copyright_results.txt
 │   └── scanner/          # Core implementation of copyright scanner
 ├── go.mod               # Go module definition
 ├── LICENSE             # Apache 2.0 License
-├── NOTICE              # Copyright and attribution notice
 └── README.md           # Project documentation
 ```
 
@@ -62,6 +61,26 @@ Copyright (c) 2024 Example Corp.
 Copyright © 2023 Another Company Inc.
 Copyright (C) 2022 Open Source Project
 ```
+
+## Roadmap
+
+The following features are planned for future releases:
+
+### Near-term Goals
+- [ ] MCP (Model Context Protocol) Integration
+  - Implementation of Model Context Protocol for enhanced context management
+  - Support for dynamic context switching and handling
+  - Improved model interaction and response generation
+  - Context-aware processing capabilities
+  - Integration with various LLM providers
+
+### Future Enhancements
+- [ ] Advanced context manipulation features
+- [ ] Performance optimization for large-scale processing
+- [ ] Integration with CI/CD pipelines
+- [ ] Web interface for easier interaction
+- [ ] Support for multiple model providers
+- [ ] Custom context definition and management
 
 ## License
 
