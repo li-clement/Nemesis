@@ -2,6 +2,8 @@
 
 A Go-based tool designed to scan all text files in a directory, extract copyright information, and analyze it using Model Context Protocol (MCP).
 
+We also provide documents generated and hosted by **DeepWiki**, see [here](https://deepwiki.com/li-clement/Nemesis)
+
 ## Features
 
 - Smart text file detection (automatically skips binary files)
